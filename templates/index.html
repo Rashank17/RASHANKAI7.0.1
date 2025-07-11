@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RashankAI - Friendly Assistant</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(to right, #dfe9f3, #ffffff);
+      margin: 0;
+      padding: 2rem;
+      text-align: center;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 12px;
+      padding: 2rem 3rem;
+      box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 1rem;
+      font-size: 1.1rem;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      margin-top: 1rem;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.8rem 1.5rem;
+      font-size: 1rem;
+      background: #4f46e5;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: #3730a3;
+    }
+    .response {
+      margin-top: 2rem;
+      font-size: 1.1rem;
+      color: #333;
+      white-space: pre-wrap;
+      text-align: left;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🤖 RashankAI</h1>
+    <p>Your friendly assistant – ask me anything!</p>
+    <input id="question" type="text" placeholder="Type your question here...">
+    <button onclick="getAnswer()">Ask Rashank</button>
+    <div class="response" id="response"></div>
+  </div>
+
+  <script>
+    const memory = {};
+
+    async function getAnswer() {
+      try {
+        const questionInput = document.getElementById('question');
+        const responseBox = document.getElementById('response');
+        const question = questionInput.value.trim().toLowerCase();
+
+        if (!question) {
+          responseBox.textContent = "Please type a question!";
+          return;
+        }
+
+        const greetings = ["Hi there! 😊", "Hello! 👋", "Hey! How can I help you today?", "Oh hey! Good to see you!"];
+        const intros = [
+          "I'm RashankAI, your friendly assistant created by Rashank Singh in 2025! 😄",
+          "Well! I'm RashankAI, made by Rashank Singh in 2025 to help answer your questions, no matter how deep or quirky!"
+        ];
+
+        const hardcoded = {
+          "hi": greetings[Math.floor(Math.random() * greetings.length)],
+          "hello": greetings[Math.floor(Math.random() * greetings.length)],
+          "who are you": intros[Math.floor(Math.random() * intros.length)],
+          "what is your name": intros[Math.floor(Math.random() * intros.length)],
+          "who created you": "Oh! That would be Rashank Singh, who built me in 2025 with love and a bit of Python. 🧠💡",
+          "when were you created": "Well! I was created in the exciting year of 2025.",
+          "what year were you created": "Well! I was created in the exciting year of 2025.",
+          "what is the meaning of life": "Ah, the big ones! 🌌 Some say it's 42, others say it's love, learning, and leaving the world better than we found it.",
+          "why are we here": "Ah, the big ones! 🌌 Some say it's 42, others say it's love, learning, and leaving the world better than we found it."
+        };
+
+        if (hardcoded[question]) {
+          responseBox.textContent = hardcoded[question];
+          return;
+        }
+
+        if (memory[question]) {
+          responseBox.textContent = `Oh right! You've asked that before 😄 Here's what I said:\n\n${memory[question]}`;
+          return;
+        }
+
+        const res = await fetch("/ask", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ question })
+        });
+
+        const data = await res.json();
+
+        if (data.error) {
+          responseBox.textContent = `Oops! Server error: ${data.error}`;
+          return;
+        }
+
+        const answer = data.answer || "Hmm... I couldn’t find a solid answer, but I’m learning!";
+        const longPrompt = question.includes("long") || question.includes("detailed") || question.includes("in 10 lines") || question.includes("essay");
+        memory[question] = answer;
+
+        const variants = [
+          `Here's what I found:\n\n${answer}`,
+          `Okay! So...\n\n${answer}`,
+          `Well, this might help:\n\n${answer}`,
+          `Alright, here’s an idea:\n\n${answer}`
+        ];
+
+        if (longPrompt) {
+          responseBox.textContent = `Sure! Here's a longer explanation:
+
+${answer}`;
+        } else {
+          responseBox.textContent = variants[Math.floor(Math.random() * variants.length)];
+        }
+      } catch (err) {
+        document.getElementById('response').textContent = `Oops! Something went wrong: ${err.message}`;
+      }
+    }
+  </script>
+</body>
+</html>
